@@ -1,18 +1,17 @@
 package client;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
-import java.util.GregorianCalendar;
 
 public class SendService {
 
     private Socket socket;
     private DataOutputStream toServer;
+    private static final int PORT = 5959;
 
-    public SendService(int port){
+    SendService(){
         try {
-            socket = new Socket("localhost", port);
+            socket = new Socket("localhost", PORT);
         }
         catch (IOException e) {
             System.err.println("Host is unknown");
@@ -20,25 +19,20 @@ public class SendService {
         }
     }
 
-    public void send(Time enterTime){
-        GregorianCalendar time = new GregorianCalendar();
-        readTime(time, enterTime);
+    void send(String subject, String message, String email, int year, int month, int day){
         try {
-            sendNotification("1", "CHECK-1", time, "http", "http://yandex.ru");
-            sendNotification("2", "CHECK-2", time, "mail", "a@gmail.com");
+            try {
+                toServer = new DataOutputStream(socket.getOutputStream());
+                toServer.writeBytes(subject + "\n" +message  + "\n" +email + "\n" + year + "\n" + month + "\n" + day);
+
+            }
+            finally {
+                toServer.close();
+            }
         }
-        catch (Exception e) {
+        catch (IOException e) {
             System.err.println("Can't send message");
             e.printStackTrace();
         }
-    }
-
-    private void readTime(GregorianCalendar time, Time enterTime) {
-        time.set(enterTime.getYear(), enterTime.getMonth(), enterTime.getDay(), enterTime.getHour(), enterTime.getMinutes());
-    }
-
-    private void sendNotification(String external_id, String message, GregorianCalendar time, String notification_type, String extra_params) throws Exception {
-        toServer = new DataOutputStream(socket.getOutputStream());
-        toServer.writeBytes(external_id + "\n" + message + "\n" + time.getTimeInMillis() + "\n" + notification_type + "\n" + extra_params + "\n");
     }
 }
